@@ -37,9 +37,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ordersData } from "@/lib/data/orders"
 import type { FilterState, Order, SortDirection, SortField } from "@/lib/types"
 import { DateRange, SelectRangeEventHandler } from "react-day-picker"
+import { useRouter } from "next/navigation"
 
 
 export default function OrdersList() {
+  const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [page, setPage] = useState(1)
@@ -187,239 +189,240 @@ export default function OrdersList() {
   }
 
   return (
-    <Card>
-      <div className="p-4 flex flex-col space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Input placeholder="Cerca ordini..." value={searchQuery} onChange={handleSearch} className="max-w-sm" />
-            <Select value={filterState} onValueChange={(value: FilterState) => handleFilterChange(value)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtra per stato" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tutti gli stati</SelectItem>
-                <SelectItem value="lavorazione">In Lavorazione</SelectItem>
-                <SelectItem value="spedito">Spediti</SelectItem>
-                <SelectItem value="annullato">Annullati</SelectItem>
-              </SelectContent>
-            </Select>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {dateRange?.from || dateRange?.to ? (
-                    <span>
-                      {dateRange?.from ? format(dateRange?.from, "d MMM", { locale: it }) : "..."} -{" "}
-                      {dateRange?.to ? format(dateRange?.to, "d MMM", { locale: it }) : "..."}
-                    </span>
-                  ) : (
-                    <span>Filtra per data</span>
+    <div className="flex flex-col space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input placeholder="Cerca ordini..." value={searchQuery} onChange={handleSearch} className="max-w-sm" />
+          <Select value={filterState} onValueChange={(value: FilterState) => handleFilterChange(value)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtra per stato" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tutti gli stati</SelectItem>
+              <SelectItem value="lavorazione">In Lavorazione</SelectItem>
+              <SelectItem value="spedito">Spediti</SelectItem>
+              <SelectItem value="annullato">Annullati</SelectItem>
+            </SelectContent>
+          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                <Calendar className="h-4 w-4 mr-2" />
+                {dateRange?.from || dateRange?.to ? (
+                  <span>
+                    {dateRange?.from ? format(dateRange?.from, "d MMM", { locale: it }) : "..."} -{" "}
+                    {dateRange?.to ? format(dateRange?.to, "d MMM", { locale: it }) : "..."}
+                  </span>
+                ) : (
+                  <span>Filtra per data</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <div className="p-3 border-b">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Seleziona intervallo date</h4>
+                  {(dateRange?.from || dateRange?.to) && (
+                    <Button variant="ghost" size="sm" className="h-8 px-2" onClick={clearDateFilter}>
+                      <X className="h-4 w-4" />
+                    </Button>
                   )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <div className="p-3 border-b">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Seleziona intervallo date</h4>
-                    {(dateRange?.from || dateRange?.to) && (
-                      <Button variant="ghost" size="sm" className="h-8 px-2" onClick={clearDateFilter}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex gap-1 text-sm text-muted-foreground">
-                    {dateRange?.from && <span>{format(dateRange?.from, "d MMMM yyyy", { locale: it })}</span>}
-                    {dateRange?.from && dateRange?.to && <span> - </span>}
-                    {dateRange?.to && <span>{format(dateRange?.to, "d MMMM yyyy", { locale: it })}</span>}
-                  </div>
                 </div>
-                <CalendarComponent
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={handleDateRangeChange}
-                  numberOfMonths={2}
-                  locale={it}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Esporta
-            </Button>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuovo Ordine
-            </Button>
-          </div>
+                <div className="flex gap-1 text-sm text-muted-foreground">
+                  {dateRange?.from && <span>{format(dateRange?.from, "d MMMM yyyy", { locale: it })}</span>}
+                  {dateRange?.from && dateRange?.to && <span> - </span>}
+                  {dateRange?.to && <span>{format(dateRange?.to, "d MMMM yyyy", { locale: it })}</span>}
+                </div>
+              </div>
+              <CalendarComponent
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={handleDateRangeChange}
+                numberOfMonths={2}
+                locale={it}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
-
-        {/* Active filters display */}
-        {(filterState !== "all" || dateRange?.from || dateRange?.to || searchQuery) && (
-          <div className="flex flex-wrap gap-2 items-center text-sm">
-            <span className="text-muted-foreground">Filtri attivi:</span>
-            {filterState !== "all" && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Stato:{" "}
-                {filterState === "lavorazione" ? "In Lavorazione" : filterState === "spedito" ? "Spedito" : "Annullato"}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 p-0 ml-1"
-                  onClick={() => handleFilterChange("all")}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}
-            {(dateRange?.from || dateRange?.to) && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Data: {dateRange?.from ? format(dateRange?.from, "d MMM", { locale: it }) : "..."} -{" "}
-                {dateRange?.to ? format(dateRange?.to, "d MMM", { locale: it }) : "..."}
-                <Button variant="ghost" size="icon" className="h-4 w-4 p-0 ml-1" onClick={clearDateFilter}>
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}
-            {searchQuery && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Ricerca: {searchQuery}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 p-0 ml-1"
-                  onClick={() => {
-                    setSearchQuery("")
-                    applyFilters(orders, filterState, "", sortField, sortDirection, dateRange)
-                  }}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}
-          </div>
-        )}
-
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">
-                  <div className="flex items-center space-x-1 cursor-pointer" onClick={() => handleSort("id")}>
-                    <span>ID</span>
-                    <ArrowUpDown className="h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center space-x-1 cursor-pointer" onClick={() => handleSort("productName")}>
-                    <span>Prodotto</span>
-                    <ArrowUpDown className="h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center space-x-1 cursor-pointer" onClick={() => handleSort("orderDate")}>
-                    <span>Data Ordine</span>
-                    <ArrowUpDown className="h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center space-x-1 cursor-pointer" onClick={() => handleSort("state")}>
-                    <span>Stato</span>
-                    <ArrowUpDown className="h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead className="text-right">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedOrders.length > 0 ? (
-                paginatedOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">#{order.id}</TableCell>
-                    <TableCell>{order.productName}</TableCell>
-                    <TableCell>{format(new Date(order.orderDate), "d MMMM yyyy", { locale: it })}</TableCell>
-                    <TableCell>{getStatusBadge(order.state)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Apri menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Azioni</DropdownMenuLabel>
-                          <DropdownMenuItem>Visualizza dettagli</DropdownMenuItem>
-                          <DropdownMenuItem>Aggiorna stato</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">Annulla ordine</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    Nessun risultato trovato.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {filteredOrders.length > 0 ? (
-              <>
-                Mostrando <span className="font-medium">{(page - 1) * pageSize + 1}</span> a{" "}
-                <span className="font-medium">{Math.min(page * pageSize, filteredOrders.length)}</span> di{" "}
-                <span className="font-medium">{filteredOrders.length}</span> risultati
-              </>
-            ) : (
-              "Nessun risultato trovato"
-            )}
-          </div>
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(1)}
-              disabled={page === 1 || filteredOrders.length === 0}
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1 || filteredOrders.length === 0}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages || filteredOrders.length === 0}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(totalPages)}
-              disabled={page === totalPages || filteredOrders.length === 0}
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Esporta
+          </Button>
+          <Button size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Nuovo Ordine
+          </Button>
         </div>
       </div>
-    </Card>
+
+      {/* Active filters display */}
+      {(filterState !== "all" || dateRange?.from || dateRange?.to || searchQuery) && (
+        <div className="flex flex-wrap gap-2 items-center text-sm">
+          <span className="text-muted-foreground">Filtri attivi:</span>
+          {filterState !== "all" && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              Stato:{" "}
+              {filterState === "lavorazione" ? "In Lavorazione" : filterState === "spedito" ? "Spedito" : "Annullato"}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-4 w-4 p-0 ml-1"
+                onClick={() => handleFilterChange("all")}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {(dateRange?.from || dateRange?.to) && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              Data: {dateRange?.from ? format(dateRange?.from, "d MMM", { locale: it }) : "..."} -{" "}
+              {dateRange?.to ? format(dateRange?.to, "d MMM", { locale: it }) : "..."}
+              <Button variant="ghost" size="icon" className="h-4 w-4 p-0 ml-1" onClick={clearDateFilter}>
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {searchQuery && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              Ricerca: {searchQuery}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-4 w-4 p-0 ml-1"
+                onClick={() => {
+                  setSearchQuery("")
+                  applyFilters(orders, filterState, "", sortField, sortDirection, dateRange)
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+        </div>
+      )}
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">
+                <div className="flex items-center space-x-1 cursor-pointer" onClick={() => handleSort("id")}>
+                  <span>ID</span>
+                  <ArrowUpDown className="h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center space-x-1 cursor-pointer" onClick={() => handleSort("productName")}>
+                  <span>Prodotto</span>
+                  <ArrowUpDown className="h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center space-x-1 cursor-pointer" onClick={() => handleSort("orderDate")}>
+                  <span>Data Ordine</span>
+                  <ArrowUpDown className="h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center space-x-1 cursor-pointer" onClick={() => handleSort("state")}>
+                  <span>Stato</span>
+                  <ArrowUpDown className="h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead className="text-right">Azioni</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedOrders.length > 0 ? (
+              paginatedOrders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium">#{order.id}</TableCell>
+                  <TableCell>{order.productName}</TableCell>
+                  <TableCell>{format(new Date(order.orderDate), "d MMMM yyyy", { locale: it })}</TableCell>
+                  <TableCell>{getStatusBadge(order.state)}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Apri menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Azioni</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onSelect={() => router.push(`/orders/${order.id}`)}>
+                          Visualizza dettagli
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>Aggiorna stato</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-red-600">Annulla ordine</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  Nessun risultato trovato.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {filteredOrders.length > 0 ? (
+            <>
+              Mostrando <span className="font-medium">{(page - 1) * pageSize + 1}</span> a{" "}
+              <span className="font-medium">{Math.min(page * pageSize, filteredOrders.length)}</span> di{" "}
+              <span className="font-medium">{filteredOrders.length}</span> risultati
+            </>
+          ) : (
+            "Nessun risultato trovato"
+          )}
+        </div>
+        <div className="space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(1)}
+            disabled={page === 1 || filteredOrders.length === 0}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1 || filteredOrders.length === 0}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages || filteredOrders.length === 0}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(totalPages)}
+            disabled={page === totalPages || filteredOrders.length === 0}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }
