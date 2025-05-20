@@ -103,7 +103,7 @@ La dashboard fornisce una panoramica rapida degli ordini con:
 
 2. Ho utilizzato v0 creato da vercel per realizzare più velocemente le pagine e/o componenti 
   richiesti, giusto una raw per inziare ad avere un idea, eventualemnte se c'erano errori o sbagli,
-  me ne occupavo io personalmente
+  me ne occupavo io personalmente (link: https://v0.dev/chat)
 
 4. Rivedrei pricipalemente questa versione "raw", e visto la funzioanlità e il sacrificio realizzato sulla "commisione" 
   del prodotto, rivedrei bene la suddivisione di componenti riutilizzabili e possibile miglioria di logica, (funzioni ecc...)
