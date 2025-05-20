@@ -91,3 +91,19 @@ Dopo aver avviato l'applicazione, puoi accedere a:
 La dashboard fornisce una panoramica rapida degli ordini con:
 - Conteggio degli ordini per stato
 - Gr
+
+
+### Risposte alle domande richieste
+
+1. Iniziando con leggere la richiesta data dal cliente, ho suddiviso il lavoro in fasi:
+  - Dati richiesti
+  - Pagine di visualizzazione richieste
+  - Suddivisione del contenuto in base alle pagien richieste
+  - Calcolo ipotesi tempistica
+
+2. Ho utilizzato v0 creato da vercel per realizzare più velocemente le pagine e/o componenti 
+  richiesti, giusto una raw per inziare ad avere un idea, eventualemnte se c'erano errori o sbagli,
+  me ne occupavo io personalmente
+
+4. Rivedrei pricipalemente questa versione "raw", e visto la funzioanlità e il sacrificio realizzato sulla "commisione" 
+  del prodotto, rivedrei bene la suddivisione di componenti riutilizzabili e possibile miglioria di logica, (funzioni ecc...)
