@@ -3,10 +3,11 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { format } from "date-fns"
+import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns"
 import { it } from "date-fns/locale"
 import {
   ArrowUpDown,
+  Calendar,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -15,9 +16,12 @@ import {
   Filter,
   MoreHorizontal,
   Plus,
+  X,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Card } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,10 +31,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ordersData } from "@/lib/data/orders"
-import { FilterState, Order, SortDirection, SortField } from "@/lib/types"
+import type { FilterState, Order, SortDirection, SortField } from "@/lib/types"
+import { DateRange, SelectRangeEventHandler } from "react-day-picker"
+
 
 export default function OrdersList() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -40,6 +47,10 @@ export default function OrdersList() {
   const [searchQuery, setSearchQuery] = useState("")
   const [sortField, setSortField] = useState<SortField>("orderDate")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  })
 
   const pageSize = 10
 
@@ -51,7 +62,7 @@ export default function OrdersList() {
     }))
 
     setOrders(parsedOrders)
-    applyFilters(parsedOrders, filterState, searchQuery, sortField, sortDirection)
+    applyFilters(parsedOrders, filterState, searchQuery, sortField, sortDirection, dateRange)
   }, [])
 
   const applyFilters = (
@@ -60,12 +71,33 @@ export default function OrdersList() {
     query: string,
     field: SortField,
     direction: SortDirection,
+    dateFilter: DateRange | undefined,
   ) => {
     let result = [...data]
 
     // Apply state filter
     if (state !== "all") {
       result = result.filter((order) => order.state === state)
+    }
+
+    // Apply date range filter
+    if (dateFilter && (dateFilter.from || dateFilter.to)) {
+      result = result.filter((order) => {
+        const orderDate = new Date(order.orderDate)
+
+        if (dateFilter.from && dateFilter.to) {
+          return isWithinInterval(orderDate, {
+            start: startOfDay(dateFilter.from),
+            end: endOfDay(dateFilter.to),
+          })
+        } else if (dateFilter.from) {
+          return orderDate >= startOfDay(dateFilter.from)
+        } else if (dateFilter.to) {
+          return orderDate <= endOfDay(dateFilter.to)
+        }
+
+        return true
+      })
     }
 
     // Apply search query
@@ -100,20 +132,30 @@ export default function OrdersList() {
 
   const handleFilterChange = (value: FilterState) => {
     setFilterState(value)
-    applyFilters(orders, value, searchQuery, sortField, sortDirection)
+    applyFilters(orders, value, searchQuery, sortField, sortDirection, dateRange)
   }
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value
     setSearchQuery(query)
-    applyFilters(orders, filterState, query, sortField, sortDirection)
+    applyFilters(orders, filterState, query, sortField, sortDirection, dateRange)
   }
 
   const handleSort = (field: SortField) => {
     const direction = field === sortField && sortDirection === "asc" ? "desc" : "asc"
     setSortField(field)
     setSortDirection(direction)
-    applyFilters(orders, filterState, searchQuery, field, direction)
+    applyFilters(orders, filterState, searchQuery, field, direction, dateRange)
+  }
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range)
+    applyFilters(orders, filterState, searchQuery, sortField, sortDirection, range)
+  }
+
+  const clearDateFilter = () => {
+    setDateRange({ from: undefined, to: undefined })
+    applyFilters(orders, filterState, searchQuery, sortField, sortDirection, { from: undefined, to: undefined })
   }
 
   const totalPages = Math.ceil(filteredOrders.length / pageSize)
@@ -145,9 +187,10 @@ export default function OrdersList() {
   }
 
   return (
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+    <Card>
+      <div className="p-4 flex flex-col space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
             <Input placeholder="Cerca ordini..." value={searchQuery} onChange={handleSearch} className="max-w-sm" />
             <Select value={filterState} onValueChange={(value: FilterState) => handleFilterChange(value)}>
               <SelectTrigger className="w-[180px]">
@@ -160,6 +203,47 @@ export default function OrdersList() {
                 <SelectItem value="annullato">Annullati</SelectItem>
               </SelectContent>
             </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {dateRange?.from || dateRange?.to ? (
+                    <span>
+                      {dateRange?.from ? format(dateRange?.from, "d MMM", { locale: it }) : "..."} -{" "}
+                      {dateRange?.to ? format(dateRange?.to, "d MMM", { locale: it }) : "..."}
+                    </span>
+                  ) : (
+                    <span>Filtra per data</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="p-3 border-b">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Seleziona intervallo date</h4>
+                    {(dateRange?.from || dateRange?.to) && (
+                      <Button variant="ghost" size="sm" className="h-8 px-2" onClick={clearDateFilter}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex gap-1 text-sm text-muted-foreground">
+                    {dateRange?.from && <span>{format(dateRange?.from, "d MMMM yyyy", { locale: it })}</span>}
+                    {dateRange?.from && dateRange?.to && <span> - </span>}
+                    {dateRange?.to && <span>{format(dateRange?.to, "d MMMM yyyy", { locale: it })}</span>}
+                  </div>
+                </div>
+                <CalendarComponent
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={handleDateRangeChange}
+                  numberOfMonths={2}
+                  locale={it}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
@@ -172,6 +256,52 @@ export default function OrdersList() {
             </Button>
           </div>
         </div>
+
+        {/* Active filters display */}
+        {(filterState !== "all" || dateRange?.from || dateRange?.to || searchQuery) && (
+          <div className="flex flex-wrap gap-2 items-center text-sm">
+            <span className="text-muted-foreground">Filtri attivi:</span>
+            {filterState !== "all" && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Stato:{" "}
+                {filterState === "lavorazione" ? "In Lavorazione" : filterState === "spedito" ? "Spedito" : "Annullato"}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 p-0 ml-1"
+                  onClick={() => handleFilterChange("all")}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+            {(dateRange?.from || dateRange?.to) && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Data: {dateRange?.from ? format(dateRange?.from, "d MMM", { locale: it }) : "..."} -{" "}
+                {dateRange?.to ? format(dateRange?.to, "d MMM", { locale: it }) : "..."}
+                <Button variant="ghost" size="icon" className="h-4 w-4 p-0 ml-1" onClick={clearDateFilter}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+            {searchQuery && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Ricerca: {searchQuery}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 p-0 ml-1"
+                  onClick={() => {
+                    setSearchQuery("")
+                    applyFilters(orders, filterState, "", sortField, sortDirection, dateRange)
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+          </div>
+        )}
 
         <div className="rounded-md border">
           <Table>
@@ -290,5 +420,6 @@ export default function OrdersList() {
           </div>
         </div>
       </div>
+    </Card>
   )
 }
