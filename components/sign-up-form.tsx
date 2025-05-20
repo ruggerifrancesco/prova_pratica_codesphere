@@ -1,3 +1,4 @@
+"use client"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,17 +11,22 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { redirect } from "next/navigation"
+import { useState } from "react"
+import { IconLoader2 } from "@tabler/icons-react"
 
 export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
   async function onSubmit(e: React.FormEvent) {
-      e.preventDefault()
-      setTimeout(() => { }, 5000)
+    e.preventDefault()
+    setIsLoading(true)
+    setTimeout((): void => {
       redirect("/dashboard")
-    }
+    }, 3000)
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -75,8 +81,8 @@ export function SignUpForm({
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Registrati
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? <IconLoader2 className="animate-spin" /> : "Registrati"}
                 </Button>
               </div>
             </div>

@@ -12,17 +12,21 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { redirect } from "next/navigation"
-import React from "react"
+import React, { useState } from "react"
+import { IconLoader2 } from "@tabler/icons-react"
 
 export function SignInForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setTimeout(() => { }, 5000)
-    redirect("/dashboard")
+    setIsLoading(true)
+    setTimeout((): void => {
+      redirect("/dashboard")
+    }, 3000)
   }
 
   return (
@@ -60,8 +64,8 @@ export function SignInForm({
                 <Input id="password" type="password" required autoComplete="on" />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Accedi
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? <IconLoader2 className="animate-spin" /> : "Accedi"}
                 </Button>
               </div>
             </div>
