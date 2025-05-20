@@ -44,9 +44,10 @@ Ordini Dashboard è un'applicazione web completa per la gestione degli ordini, p
 \`\`\`
 ordini-dashboard/
 ├── app/                    # Cartella principale dell'applicazione Next.js
+|   |── (markerting)        # Cartella per organizzazione, contiene la struttura per poter suddividere pagine come About US
+|   |── (auth)              # Cartella per suddividere logica di autenticazione
+|   |── (protected)         # Cartella per logica per suddividere logica back (office)
 │   ├── layout.tsx          # Layout principale dell'applicazione
-│   ├── page.tsx            # Pagina dashboard principale
-│   └── orders/             # Pagina di gestione ordini
 ├── components/             # Componenti React riutilizzabili
 │   ├── dashboard.tsx       # Componente dashboard principale
 │   ├── orders-chart.tsx    # Componente per i grafici degli ordini
