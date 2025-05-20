@@ -39,37 +39,10 @@ export default function DashboardPage() {
     setFilteredOrders(lastMonthOrders)
   }, [])
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value.toLowerCase()
-    setSearchQuery(query)
-
-    if (query.trim() === "") {
-      const now = new Date()
-      const lastMonth = subMonths(now, 1)
-      const lastMonthStart = startOfMonth(lastMonth)
-      const lastMonthEnd = endOfMonth(lastMonth)
-
-      const lastMonthOrders = orders.filter(order =>
-        isWithinInterval(order.orderDate, { start: lastMonthStart, end: lastMonthEnd })
-      )
-
-      setFilteredOrders(lastMonthOrders)
-    } else {
-      const filtered = orders.filter(order =>
-        order.productName.toLowerCase().includes(query) ||
-        order.id.toString().includes(query)
-      )
-      setFilteredOrders(filtered)
-    }
-  }
-
   // Count orders by state
   const processingOrders = filteredOrders.filter(order => order.state === "lavorazione").length
   const shippedOrders = filteredOrders.filter(order => order.state === "spedito").length
   const canceledOrders = filteredOrders.filter(order => order.state === "annullato").length
-
-  // Format the current month for display
-  const currentMonthName = format(subMonths(new Date(), 1), 'MMMM yyyy', { locale: it })
 
   return (
     <div className="px-4 lg:px-6">
