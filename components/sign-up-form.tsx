@@ -41,6 +41,16 @@ export function SignUpForm({
           <form onSubmit={onSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Mario Rossi"
+                  required
+                  autoComplete="off"
+                />
+              </div>
+              <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -51,17 +61,7 @@ export function SignUpForm({
                 />
               </div>
               <div className="grid gap-3">
-                <Label htmlFor="confirmation_email">Conferma Email</Label>
-                <Input
-                  id="confirmation_email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  autoComplete="off"
-                />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="confirmation_email">Password</Label>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
